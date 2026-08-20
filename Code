@@ -1,0 +1,60 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int sensorPin = A0;
+int sensorValue = 0;
+
+// Calibration values
+const int sensorMin = 0;      // Analog value when tank is empty
+const int sensorMax = 1023;   // Analog value when tank is full
+
+void setup()
+{
+    Serial.begin(9600);
+
+    lcd.init();
+    lcd.backlight();
+
+    lcd.setCursor(0, 0);
+    lcd.print("Water Level");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Detection");
+
+    Serial.println("Water Level Detection");
+
+    delay(2000);
+    lcd.clear();
+}
+
+void loop()
+{
+    int sensorValue = analogRead(sensorPin);
+
+    // Clamp sensor value to avoid invalid readings
+    if (sensorValue < sensorMin)
+        sensorValue = sensorMin;
+
+    if (sensorValue > sensorMax)
+        sensorValue = sensorMax;
+
+    // Map sensor value to percentage
+    int waterPercent = map(sensorValue, sensorMin, sensorMax, 0, 100);
+
+    // Display on LCD
+    lcd.setCursor(0, 1);
+    lcd.print(waterPercent);
+    lcd.print("%   ");   // Extra spaces to clear old data
+
+    // Serial Monitor output
+    Serial.print("Sensor Value: ");
+    Serial.print(sensorValue);
+
+    Serial.print("  Water Level: ");
+    Serial.print(waterPercent);
+    Serial.println("%");
+
+    delay(1000); // Update every second
+}
